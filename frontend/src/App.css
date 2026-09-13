@@ -9,12 +9,9 @@ body {
   color: #172033;
 }
 
-/* =========================
-   MAIN CONTAINER
-========================= */
-
 .container {
-  width: 500px;
+  width: 560px;
+  max-width: calc(100% - 32px);
   margin: 60px auto;
   background: #ffffff;
   padding: 36px 40px;
@@ -22,10 +19,6 @@ body {
   border: 1px solid #e2e8f0;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
-
-/* =========================
-   TITLE
-========================= */
 
 h1 {
   margin: 0 0 30px;
@@ -35,27 +28,17 @@ h1 {
   font-weight: 700;
 }
 
-/* =========================
-   FORM
-========================= */
-
 form {
   display: flex;
   flex-direction: column;
 }
-
-/* =========================
-   LABEL + INFO
-========================= */
 
 .label-row {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-
   width: 100%;
-  margin-top: 18px;
   margin-bottom: 7px;
 }
 
@@ -66,25 +49,17 @@ form {
   color: #1f2937;
 }
 
-/* =========================
-   INFO ICON
-========================= */
-
 .info {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   width: 17px;
   height: 17px;
-
   color: #2563eb;
   font-size: 13px;
   cursor: help;
 }
-
-/* Tooltip */
 
 .tooltip {
   visibility: hidden;
@@ -94,7 +69,7 @@ form {
   left: 24px;
   bottom: 22px;
 
-  width: 230px;
+  width: 270px;
   padding: 9px 11px;
 
   background: #172033;
@@ -118,14 +93,11 @@ form {
   opacity: 1;
 }
 
-/* =========================
-   INPUT / TEXTAREA
-========================= */
-
-input,
 textarea {
   width: 100%;
-  padding: 11px 12px;
+  min-height: 150px;
+
+  padding: 12px;
 
   border: 1px solid #cbd5e1;
   border-radius: 6px;
@@ -135,7 +107,9 @@ textarea {
 
   font-family: inherit;
   font-size: 15px;
+  line-height: 1.5;
 
+  resize: vertical;
   outline: none;
 
   transition:
@@ -143,33 +117,14 @@ textarea {
     box-shadow 0.15s ease;
 }
 
-input {
-  height: 44px;
-}
-
-textarea {
-  min-height: 105px;
-  resize: vertical;
-}
-
-/* Focus */
-
-input:focus,
 textarea:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Placeholder */
-
-input::placeholder,
 textarea::placeholder {
   color: #9ca3af;
 }
-
-/* =========================
-   ERROR
-========================= */
 
 .input-error {
   border-color: #dc2626;
@@ -183,17 +138,32 @@ textarea::placeholder {
 
 .error {
   display: block;
-
-  margin-top: 5px;
-
+  margin-top: 6px;
   color: #dc2626;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-/* =========================
-   BUTTON
-========================= */
+.validation-summary {
+  margin-top: 10px;
+  padding: 11px 13px;
+
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+
+  background: #fff7f7;
+  color: #dc2626;
+
+  font-size: 12px;
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+}
+
+.summary-title {
+  margin-bottom: 3px;
+  font-weight: 600;
+}
 
 button {
   width: 100%;
@@ -226,23 +196,40 @@ button:active {
   transform: translateY(1px);
 }
 
-/* =========================
-   RESULT
-========================= */
+/* Saved Information */
+
+.saved-header {
+  margin-bottom: 22px;
+}
+
+.saved-header h2 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.saved-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
 .result {
   display: flex;
   flex-direction: column;
 
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  overflow: hidden;
 
+  overflow: hidden;
   background: #ffffff;
 }
 
 .result-item {
   display: flex;
   flex-direction: column;
+
   gap: 5px;
 
   padding: 14px 16px;
@@ -264,4 +251,17 @@ button:active {
   font-size: 15px;
   color: #111827;
   word-break: break-word;
+}
+
+.edit-button {
+  margin-top: 18px;
+
+  background: #ffffff;
+  color: #1d4ed8;
+
+  border: 1px solid #2563eb;
+}
+
+.edit-button:hover {
+  background: #eff6ff;
 }

@@ -2,447 +2,437 @@ import { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    email: "",
-    phone: "",
-    dob: "",
-    address: "",
-  });
-
+  const [input, setInput] = useState("");
   const [errors, setErrors] = useState({});
   const [savedData, setSavedData] = useState(null);
 
-  // -----------------------------
-  // Format Card Number
-  // 1234567890123456
-  // ↓
-  // 1234-5678-9012-3456
-  // -----------------------------
-  const formatCardNumber = (value) => {
-    const numbers = value.replace(/\D/g, "").slice(0, 16);
+  const parseInput = (value) => {
+    const parts = value.split(",");
 
-    return numbers.replace(/(\d{4})(?=\d)/g, "$1-");
+    if (parts.length < 5) {
+      return null;
+    }
+
+    const cardNumber = parts[0].trim();
+    const email = parts[1].trim();
+    const phone = parts[2].trim();
+    const dob = parts[3].trim();
+
+    const address = parts.slice(4).join(",").trim();
+
+    return {
+      cardNumber,
+      email,
+      phone,
+      dob,
+      address,
+    };
   };
 
-  // -----------------------------
-  // Format Phone Number
-  // 0932457894
-  // ↓
-  // 093-245-7894
-  // -----------------------------
-  const formatPhone = (value) => {
-    const numbers = value.replace(/\D/g, "").slice(0, 10);
-
-    if (numbers.length <= 3) {
-      return numbers;
-    }
-
-    if (numbers.length <= 6) {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-    }
-
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`;
-  };
-
-  // -----------------------------
-  // Format DOB
-  // DDMMYYYY
-  // ↓
-  // DD/MM/YYYY
-  // -----------------------------
-  const formatDOB = (value) => {
-    const numbers = value.replace(/\D/g, "").slice(0, 8);
-
-    if (numbers.length <= 2) {
-      return numbers;
-    }
-
-    if (numbers.length <= 4) {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    }
-
-    return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4)}`;
-  };
-
-  // -----------------------------
-  // Validate Form
-  // -----------------------------
-  const validate = () => {
+  const validateData = (data) => {
     const newErrors = {};
 
-    // ===== CARD =====
-    const cardDigits = formData.cardNumber.replace(/\D/g, "");
+    /*
+     * =========================
+     * Credit Card
+     * =========================
+     */
+
+    const cardDigits = data.cardNumber.replace(/\D/g, "");
 
     if (!cardDigits) {
-      newErrors.cardNumber = "Please enter your card number.";
+      newErrors.cardNumber =
+        "Missing card number. It must contain 16 digits.";
     } else if (cardDigits.length !== 16) {
       newErrors.cardNumber =
         "Card number must contain 16 digits.";
-    }
-
-    // ===== EMAIL =====
-    if (!formData.email.trim()) {
-      newErrors.email = "Please enter your email.";
     } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      !/^\d{4}-\d{4}-\d{4}-\d{4}$/.test(
+        data.cardNumber
+      )
     ) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.cardNumber =
+        "Invalid card number format. Example: 1234-5678-9012-3456";
     }
 
-    // ===== PHONE =====
-    const phoneDigits = formData.phone.replace(/\D/g, "");
+    /*
+     * =========================
+     * Email
+     * =========================
+     */
+
+    if (!data.email) {
+      newErrors.email = "Missing email address.";
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
+    ) {
+      newErrors.email =
+        "Invalid email format. Example: example@gmail.com";
+    }
+
+    /*
+     * =========================
+     * Phone
+     * =========================
+     */
+
+    const phoneDigits = data.phone.replace(/\D/g, "");
 
     if (!phoneDigits) {
-      newErrors.phone = "Please enter your phone number.";
+      newErrors.phone =
+        "Missing phone number. It must contain 10 digits.";
     } else if (phoneDigits.length !== 10) {
       newErrors.phone =
         "Phone number must contain 10 digits.";
+    } else if (
+      !/^\d{3}-\d{3}-\d{4}$/.test(data.phone)
+    ) {
+      newErrors.phone =
+        "Invalid phone number format. Example: 091-759-5508";
     }
 
-    // ===== DOB =====
-    if (!formData.dob) {
-      newErrors.dob = "Please enter your date of birth.";
+    /*
+     * =========================
+     * Date of Birth
+     * =========================
+     */
+
+    if (!data.dob) {
+      newErrors.dob =
+        "Missing date of birth. Example: DOB: 05/05/2549";
+    } else if (
+      !/^DOB:\s*\d{2}\/\d{2}\/\d{4}$/.test(data.dob)
+    ) {
+      newErrors.dob =
+        "Invalid date of birth format. Example: DOB: 05/05/2549";
     } else {
-      const dobMatch = formData.dob.match(
-        /^(\d{2})\/(\d{2})\/(\d{4})$/
-      );
+      const datePart = data.dob
+        .replace(/^DOB:\s*/, "")
+        .trim();
 
-      if (!dobMatch) {
+      const [day, month, year] = datePart
+        .split("/")
+        .map(Number);
+
+      const currentYear =
+        new Date().getFullYear() + 543;
+
+      if (
+        month < 1 ||
+        month > 12 ||
+        year < 2400 ||
+        year > currentYear
+      ) {
         newErrors.dob =
-          "Date of birth must be in DD/MM/YYYY format.";
+          "Invalid date of birth. Example: DOB: 05/05/2549";
       } else {
-        const day = Number(dobMatch[1]);
-        const month = Number(dobMatch[2]);
-        const year = Number(dobMatch[3]);
-        const currentYear = new Date().getFullYear() + 543;
+        const daysInMonth = new Date(
+          year - 543,
+          month,
+          0
+        ).getDate();
 
-        if (
-          month < 1 ||
-          month > 12 ||
-          year < 2400 ||
-          year > currentYear
-        ) 
-        {
-          newErrors.dob = "Please enter a valid date of birth.";
-        } 
-        else {
-          const daysInMonth = new Date(year - 543,month,0).getDate();
-          if (day < 1 || day > daysInMonth) {
-            newErrors.dob = "Please enter a valid date of birth.";
-          }
+        if (day < 1 || day > daysInMonth) {
+          newErrors.dob =
+            "Invalid date of birth. Example: DOB: 05/05/2549";
         }
       }
     }
 
-    // ===== ADDRESS =====
-    const address = formData.address.trim();
+    /*
+     * =========================
+     * Address
+     * =========================
+     *
+     * Required:
+     * Address:
+     * 1. House number
+     * 2. Soi (optional)
+     * 3. Road
+     * 4. Subdistrict
+     * 5. District
+     * 6. Province
+     */
 
-    if (!address) {
-      newErrors.address = "Please enter your address.";
+    if (!data.address) {
+      newErrors.address =
+        "Missing address. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+    } else if (
+      !data.address.startsWith("Address:")
+    ) {
+      newErrors.address =
+        "Address must start with \"Address:\". Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
     } else {
-      // ต้องมีเลขที่บ้านด้านหน้า
-      const hasHouseNumber = /^\d+/.test(address);
-
-      // ต้องมีรายละเอียดหลังเลขที่บ้าน
-      const remainingAddress = address
-        .replace(/^\d+/, "")
+      const addressText = data.address
+        .replace(/^Address:\s*/, "")
         .trim();
 
-      if (!hasHouseNumber) {
+      if (!addressText) {
         newErrors.address =
-          "Address must start with a house number.";
-      } else if (remainingAddress.length === 0) {
-        newErrors.address =
-          "Please enter additional address details.";
+          "Missing address details. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+      } else {
+        /*
+         * House number
+         */
+        const hasHouseNumber = /^\d+/.test(addressText);
+
+        /*
+         * Road
+         */
+        const hasRoad =
+          /ถนน\S*/.test(addressText) ||
+          /ถ\.\S*/.test(addressText);
+
+        /*
+         * Subdistrict
+         */
+        const hasSubdistrict =
+          /แขวง\S*/.test(addressText) ||
+          /ตำบล\S*/.test(addressText) ||
+          /ต\.\S*/.test(addressText);
+
+        /*
+         * District
+         */
+        const hasDistrict =
+          /เขต\S*/.test(addressText) ||
+          /อำเภอ\S*/.test(addressText) ||
+          /อ\.\S*/.test(addressText);
+
+        /*
+         * Province
+         */
+        const hasProvince =
+          /กรุงเทพมหานคร/.test(addressText) ||
+          /กรุงเทพ/.test(addressText) ||
+          /กรุงเทพฯ/.test(addressText) ||
+          /จังหวัด\S*/.test(addressText) ||
+          /จ\.\S*/.test(addressText);
+
+        if (!hasHouseNumber) {
+          newErrors.address =
+            "Missing house number. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+        } else if (!hasRoad) {
+          newErrors.address =
+            "Missing road. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+        } else if (!hasSubdistrict) {
+          newErrors.address =
+            "Missing subdistrict. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+        } else if (!hasDistrict) {
+          newErrors.address =
+            "Missing district. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+        } else if (!hasProvince) {
+          newErrors.address =
+            "Missing province. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
+        }
       }
     }
 
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
-  // -----------------------------
-  // Handle Input
-  // -----------------------------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    let formattedValue = value;
-
-    if (name === "cardNumber") {
-      formattedValue = formatCardNumber(value);
-    }
-
-    if (name === "phone") {
-      formattedValue = formatPhone(value);
-    }
-
-    if (name === "dob") {
-      formattedValue = formatDOB(value);
-    }
-
-    setFormData({
-      ...formData,
-      [name]: formattedValue,
-    });
-
-    // ลบ error ของช่องนั้นเมื่อผู้ใช้เริ่มแก้
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      });
-    }
-  };
-
-  // -----------------------------
-  // Submit
-  // -----------------------------
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   if (!validate()) {
-  //     return;
-  //   }
-
-  //   // Mock Backend
-  //   const mockResponse = {
-  //     cardNumber: "****-****-****-3456",
-  //     email: "s**********@gmail.com",
-  //     phone: "***-***-7894",
-  //     dob: "**/**/2549",
-  //     address: formData.address,
-  //   };
-
-  //   setSavedData(mockResponse);
-  // };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitting form data:", JSON.stringify(formData));
-    if (!validate()) {
+
+    const data = parseInput(input);
+
+    /*
+     * Check whether all 5 comma-separated
+     * sections exist.
+     */
+    if (!data) {
+      setErrors({
+        input:
+          "Information is incomplete. Please provide Card Number, Email, Phone Number, DOB, and Address.",
+      });
+
+      setSavedData(null);
       return;
     }
 
-    try {
-      const response = await fetch("/submit",{
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+    const newErrors = validateData(data);
 
-      if (!response.ok) {
-        throw new Error("Failed to save customer information.");
-      }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setSavedData(null);
+      return;
+    }
 
-      const data = await response.json();
+    setErrors({});
 
-      // เอาข้อมูลที่ backend ส่งกลับมาแสดง
-      setSavedData(data.masked_data);
-    } catch (error) {
-      console.error(error);
-      alert("Unable to save customer information.");
+    /*
+     * Mock backend response
+     */
+
+    const cardDigits = data.cardNumber.replace(/\D/g, "");
+    const phoneDigits = data.phone.replace(/\D/g, "");
+
+    const mockResponse = {
+      cardNumber: `****-****-****-${cardDigits.slice(-4)}`,
+      email: data.email,
+      phone: `***-***-${phoneDigits.slice(-4)}`,
+      dob: `**/**/${data.dob.slice(-4)}`,
+      address: data.address,
+    };
+
+    setSavedData(mockResponse);
+  };
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+
+    if (Object.keys(errors).length > 0) {
+      setErrors({});
     }
   };
 
   return (
     <div className="container">
+      <h1>Customer Information</h1>
 
       {!savedData ? (
-        <>
-          <h1>Customer Information</h1>
+        <form onSubmit={handleSubmit}>
+          <div className="label-row">
+            <label htmlFor="customerInput">
+              Customer Information
+            </label>
 
-          <form onSubmit={handleSubmit}>
-
-            {/* CARD */}
-            
-            <div className="label-row">
-              <label>Credit Card Number</label>
-
-              <span className="info">
-                ⓘ
-                <span className="tooltip">
-                Enter 16 digits. The "-" will be added automatically.
-                </span>
+            <span className="info">
+              ⓘ
+              <span className="tooltip">
+                Enter information in this order:
+                Card Number, Email, Phone Number,
+                DOB, and Address. Separate each
+                section with a comma.
               </span>
-            </div>
+            </span>
+          </div>
 
-            <input
-              type="text"
-              name="cardNumber"
-              placeholder="1234-5678-9012-3456"
-              value={formData.cardNumber}
-              onChange={handleChange}
-              className={
-                errors.cardNumber ? "input-error" : ""
-              }
-              inputMode="numeric"
-            />
+          <textarea
+            id="customerInput"
+            value={input}
+            onChange={handleInputChange}
+            className={
+              errors.input ||
+              errors.cardNumber ||
+              errors.email ||
+              errors.phone ||
+              errors.dob ||
+              errors.address
+                ? "input-error"
+                : ""
+            }
+            placeholder="1234-5678-9012-3456, example@gmail.com, 091-759-5508, DOB: 05/05/2549, Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร"
+          />
 
+          {errors.input && (
+            <span className="error">
+              {errors.input}
+            </span>
+          )}
 
-            {errors.cardNumber && (
-              <span className="error">
-                {errors.cardNumber}
-              </span>
+          {!errors.input &&
+            Object.keys(errors).length > 0 && (
+              <div className="validation-summary">
+                <div className="summary-title">
+                  Please check your information:
+                </div>
+
+                {errors.cardNumber && (
+                  <div>• {errors.cardNumber}</div>
+                )}
+
+                {errors.email && (
+                  <div>• {errors.email}</div>
+                )}
+
+                {errors.phone && (
+                  <div>• {errors.phone}</div>
+                )}
+
+                {errors.dob && (
+                  <div>• {errors.dob}</div>
+                )}
+
+                {errors.address && (
+                  <div>• {errors.address}</div>
+                )}
+              </div>
             )}
 
-
-            {/* EMAIL */}
-            <div className="label-row">
-              <label>
-              Email
-              </label>
-            </div>
-            
-
-            <input
-              type="text"
-              name="email"
-              placeholder="example@gmail.com"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? "input-error" : ""}
-              title="Enter a valid email address, e.g. example@gmail.com"
-            />
-
-            {errors.email && (
-              <span className="error">
-                {errors.email}
-              </span>
-            )}
-
-
-            {/* PHONE */}
-            <div className="label-row">
-              <label>
-              Phone Number
-              </label>
-            </div>
-            
-            <input
-              type="text"
-              name="phone"
-              placeholder="093-245-7894"
-              value={formData.phone}
-              onChange={handleChange}
-              className={
-                errors.phone ? "input-error" : ""
-              }
-              inputMode="numeric"
-            />
-
-
-            {errors.phone && (
-              <span className="error">
-                {errors.phone}
-              </span>
-            )}
-
-
-            {/* DOB */}
-            <div className="label-row">
-              <label>
-              Date of Birth
-              </label>
-            </div>
-            
-
-            <input
-              type="text"
-              name="dob"
-              placeholder="DD/MM/YYYY"
-              value={formData.dob}
-              onChange={handleChange}
-              className={
-                errors.dob ? "input-error" : ""
-              }
-              inputMode="numeric"
-            />
-
-
-            {errors.dob && (
-              <span className="error">
-                {errors.dob}
-              </span>
-            )}
-
-
-            {/* ADDRESS */}
-           
-            <div className="label-row">
-              <label>Address</label>
-                <span className="info">
-                  ⓘ
-                  <span className="tooltip">
-                  Start with your house number and include additional address details.
-                  </span>
-                </span>
-            </div>
-
-            <textarea
-              name="address"
-              placeholder="689 ซอย... ถนน... แขวง... เขต..."
-              value={formData.address}
-              onChange={handleChange}
-              className={
-                errors.address ? "input-error" : ""
-              }
-            />
-
-          
-
-            {errors.address && (
-              <span className="error">
-                {errors.address}
-              </span>
-            )}
-
-
-            <button type="submit">
-              Save Information
-            </button>
-
-          </form>
-        </>
+          <button type="submit">
+            Save
+          </button>
+        </form>
       ) : (
         <>
-          <h1>Saved Information</h1>
+          <div className="saved-header">
+            <h2>Saved Information</h2>
+            <p>
+              Customer information has been saved
+              successfully.
+            </p>
+          </div>
 
           <div className="result">
-
             <div className="result-item">
-              <span className="result-label">Credit Card</span>
-              <span className="result-value">{savedData.cardNumber}</span>
+              <span className="result-label">
+                Credit Card
+              </span>
+              <span className="result-value">
+                {savedData.cardNumber}
+              </span>
             </div>
 
             <div className="result-item">
-              <span className="result-label">Email</span>
-              <span className="result-value">{savedData.email}</span>
+              <span className="result-label">
+                Email
+              </span>
+              <span className="result-value">
+                {savedData.email}
+              </span>
             </div>
 
             <div className="result-item">
-              <span className="result-label">Phone Number</span>
-              <span className="result-value">{savedData.phone}</span>
+              <span className="result-label">
+                Phone Number
+              </span>
+              <span className="result-value">
+                {savedData.phone}
+              </span>
             </div>
 
             <div className="result-item">
-              <span className="result-label">Date of Birth</span>
-              <span className="result-value">{savedData.dob}</span>
+              <span className="result-label">
+                Date of Birth
+              </span>
+              <span className="result-value">
+                {savedData.dob}
+              </span>
             </div>
 
             <div className="result-item">
-              <span className="result-label">Address</span>
-              <span className="result-value">{savedData.address}</span>
+              <span className="result-label">
+                Address
+              </span>
+              <span className="result-value">
+                {savedData.address}
+              </span>
             </div>
-
           </div>
+
+          <button
+            type="button"
+            className="edit-button"
+            onClick={() => {
+              setSavedData(null);
+              setErrors({});
+            }}
+          >
+            Edit Information
+          </button>
         </>
       )}
-
     </div>
   );
 }

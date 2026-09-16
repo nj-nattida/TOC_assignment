@@ -76,10 +76,10 @@ function App() {
             onChange={handleInputChange}
             className={error ? "input-error" : ""}
             placeholder={`1234-5678-9012-3456
-            example@gmail.com
-            091-759-5508
-            DOB: 05/05/2549
-            Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร`}
+example@gmail.com
+091-759-5508
+DOB: 05/05/2549
+Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร`}
           />
 
           {error && (

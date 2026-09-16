@@ -18,7 +18,11 @@ function App() {
     const phone = parts[2].trim();
     const dob = parts[3].trim();
 
-    const address = parts.slice(4).join(",").trim();
+    const address = parts
+      .slice(4)
+      .join(",")
+      .replace(/^Address:\s*/, "")
+      .trim();
 
     return {
       cardNumber,
@@ -99,12 +103,12 @@ function App() {
 
     if (!data.dob) {
       newErrors.dob =
-        "Missing date of birth. Example: DOB: 05/05/2549";
+        "Missing date of birth. Example:05/05/2549";
     } else if (
-      !/^DOB:\s*\d{2}\/\d{2}\/\d{4}$/.test(data.dob)
+      !/^\s*\d{2}\/\d{2}\/\d{4}$/.test(data.dob)
     ) {
       newErrors.dob =
-        "Invalid date of birth format. Example: DOB: 05/05/2549";
+        "Invalid date of birth format. Example:05/05/2549";
     } else {
       const datePart = data.dob
         .replace(/^DOB:\s*/, "")
@@ -157,125 +161,50 @@ function App() {
     if (!data.address) {
       newErrors.address =
         "Missing address. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-    } else if (
-      !data.address.startsWith("Address:")
-    ) {
-      newErrors.address =
-        "Address must start with \"Address:\". Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-    } else {
-      const addressText = data.address
-        .replace(/^Address:\s*/, "")
-        .trim();
-
-      if (!addressText) {
-        newErrors.address =
-          "Missing address details. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-      } else {
-        /*
-         * House number
-         */
-        const hasHouseNumber = /^\d+/.test(addressText);
-
-        /*
-         * Road
-         */
-        const hasRoad =
-          /ถนน\S*/.test(addressText) ||
-          /ถ\.\S*/.test(addressText);
-
-        /*
-         * Subdistrict
-         */
-        const hasSubdistrict =
-          /แขวง\S*/.test(addressText) ||
-          /ตำบล\S*/.test(addressText) ||
-          /ต\.\S*/.test(addressText);
-
-        /*
-         * District
-         */
-        const hasDistrict =
-          /เขต\S*/.test(addressText) ||
-          /อำเภอ\S*/.test(addressText) ||
-          /อ\.\S*/.test(addressText);
-
-        /*
-         * Province
-         */
-        const hasProvince =
-          /กรุงเทพมหานคร/.test(addressText) ||
-          /กรุงเทพ/.test(addressText) ||
-          /กรุงเทพฯ/.test(addressText) ||
-          /จังหวัด\S*/.test(addressText) ||
-          /จ\.\S*/.test(addressText);
-
-        if (!hasHouseNumber) {
-          newErrors.address =
-            "Missing house number. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-        } else if (!hasRoad) {
-          newErrors.address =
-            "Missing road. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-        } else if (!hasSubdistrict) {
-          newErrors.address =
-            "Missing subdistrict. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-        } else if (!hasDistrict) {
-          newErrors.address =
-            "Missing district. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-        } else if (!hasProvince) {
-          newErrors.address =
-            "Missing province. Example: Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร";
-        }
-      }
-    }
-
+    } 
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = parseInput(input);
+    const parsedData = parseInput(input);
 
-    /*
-     * Check whether all 5 comma-separated
-     * sections exist.
-     */
-    if (!data) {
+    if (!parsedData) {
       setErrors({
         input:
           "Information is incomplete. Please provide Card Number, Email, Phone Number, DOB, and Address.",
       });
-
-      setSavedData(null);
       return;
     }
 
-    const newErrors = validateData(data);
+    const newErrors = validateData(parsedData);
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setSavedData(null);
       return;
     }
 
-    setErrors({});
+    try {
+      const response = await fetch("/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(parsedData),
+      });
 
-    /*
-     * Mock backend response
-     */
+      if (!response.ok) {
+        throw new Error("Failed to save customer information.");
+      }
 
-    const cardDigits = data.cardNumber.replace(/\D/g, "");
-    const phoneDigits = data.phone.replace(/\D/g, "");
-
-    const mockResponse = {
-      cardNumber: `****-****-****-${cardDigits.slice(-4)}`,
-      email: data.email,
-      phone: `***-***-${phoneDigits.slice(-4)}`,
-      dob: `**/**/${data.dob.slice(-4)}`,
-      address: data.address,
-    };
-
-    setSavedData(mockResponse);
+      const responseData = await response.json();
+      setSavedData(responseData.masked_data);
+      setErrors({});
+    } catch (error) {
+      console.error(error);
+      alert("Unable to save customer information.");
+    }
   };
 
   const handleInputChange = (e) => {

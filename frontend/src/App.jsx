@@ -8,7 +8,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    console.log("Submitting data:", input);
     setError("");
 
     try {
@@ -22,18 +22,20 @@ function App() {
           body: input,
         }
       );
-
+      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(JSON.stringify(errorData));
       }
 
       const result = await response.json();
-
-      setSavedData(result.masked_data);
+      console.log("Response:", result);
+      setSavedData(result);
     } catch (error) {
       console.error(error);
-
+    //   setSavedData(result);
+    //  } catch (error) {
+    //    console.error(error);
       setError(
         "Cannot connect to the server. Please make sure the backend is running."
       );

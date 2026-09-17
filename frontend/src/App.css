@@ -265,3 +265,25 @@ button:active {
 .edit-button:hover {
   background: #eff6ff;
 }
+
+.github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 24px;
+
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.github-link:hover {
+  text-decoration: underline;
+}
+
+.github-link svg {
+  width: 22px;
+  height: 22px;
+}

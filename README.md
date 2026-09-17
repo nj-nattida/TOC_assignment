@@ -92,7 +92,28 @@ The backend API is available at:
 ```text
 http://127.0.0.1:8000
 ```
+---
+## Input Format
 
+The application accepts user information in the following format:
+
+| Field         | Format                | Example                                                          |
+| ------------- | --------------------- | ---------------------------------------------------------------- |
+| Card Number   | `XXXX-XXXX-XXXX-XXXX` | `1234-5678-9012-3456`                                            |
+| Email         | Email address         | `example@gmail.com`                                              |
+| Phone         | `XXX-XXX-XXXX`        | `091-759-5508`                                                   |
+| Date of Birth | `DD/MM/YYYY`          | `05/05/2549`                                                     |
+| Address       | Thai address          | `123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร` |
+
+### Input Example
+
+```text
+1234-5678-9012-3456
+example@gmail.com
+091-759-5508
+DOB: 05/05/2549
+Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร
+```
 ---
 
 ## Stop the Servers

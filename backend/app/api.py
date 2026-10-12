@@ -1,6 +1,5 @@
 import re 
-import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -30,16 +29,16 @@ async def read_root():
     return {"message": "Hello, World!"}
 
 @app.post("/submit")
-async def submit_data(data: UserData):
+async def submit_data(data: str = Body(...)):
+    #print("Received data:", data)
     masked_data = masking_data(data)
-    return {"masked_data": masked_data}
+    return masked_data
 
-def masking_data(data: UserData):
-    credit_num = data.cardNumber
-    email = data.email
-    phone_number = data.phone
-    datebirth = data.dob
-    address = data.address
+def masking_data(data: str):
+    
+    credit_num,email,phone_number,datebirth,address= data.splitlines()
+    datebirth = datebirth.removeprefix("DOB: ")
+    address = address.removeprefix("Address: ")
     
     datebirth_pattern = r'(\d{2})/(\d{2})/(\d{2})(\d{2})'
     address_pattern_mask = r'^\d{1,5}'

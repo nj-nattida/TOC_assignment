@@ -128,7 +128,11 @@ Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว
                 Phone Number
               </span>
               <span className="result-value">
-                {savedData.phone}
+                {savedData.phone?.map((phone, index) => (
+                  <div key={index}>
+                    <span className="result-value">{phone}</span>
+                  </div>
+                ))}
               </span>
             </div>
 

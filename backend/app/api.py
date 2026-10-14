@@ -65,13 +65,15 @@ def parse_data(data: str):
     )
 
     result["address"] = re.findall(
-    r'Address\s*:\s*(.*?)(?=\s*Address\s*:|$)',
+    r'Address\s*:\s*(.*?)(?=\s*Address\s*:|[\r\n]|$)',
     data,
     re.IGNORECASE
-    )   
+)
+
     result["address"] = [
         address.strip()
         for address in result["address"]
+        if address.strip()
     ]
     return result
 
@@ -105,7 +107,6 @@ def masking_data(data: str):
             if len(digits) == 16 else card
         )
 
-    # Mask all email addresses
     masked_email = [
         mask_email(email)
         for email in result["email"]

@@ -64,19 +64,22 @@ def parse_data(data: str):
         re.IGNORECASE
     )
 
+
     result["address"] = re.findall(
-    r'Address\s*:\s*(.*?)'
-    r'(?=\s*(?:Address|payment|DOB|Date of Birth|Birthdate|Phone|'
-    r'alt contact|email)\s*:?\s*|$)',
-    data,
-    re.IGNORECASE
-)
+        r'Address\s*:\s*(.*?)'
+        r'(?=\s*(?:Address\s*:|payment\b|DOB\s*:|'
+        r'Date of Birth\s*:|Birthdate\s*:|Phone\s*:|'
+        r'alt contact\b|[\d]{4}[ -]\d{4}[ -]\d{4}[ -]\d{4})|$)',
+        data,
+        re.IGNORECASE
+    )
 
     result["address"] = [
         address.strip()
         for address in result["address"]
         if address.strip()
     ]
+
     return result
 
 
@@ -123,23 +126,15 @@ def masking_data(data: str):
             )
         else:
             masked_phone_number.append(phone)
-
     masked_datebirth = []
 
     for date in result["datebirth"]:
-        match = re.fullmatch(
-            r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
+        masked_date = re.sub(
+            r'\d{1,2}([/-])\d{1,2}[/-](\d{2})(\d{2})',
+            r'XX/XX/XX\3',
             date
         )
-
-        if match:
-            separator = "/" if "/" in date else "-"
-            year = match.group(3)
-            masked_datebirth.append(
-                f"XX{separator}XX{separator}{year}"
-            )
-        else:
-            masked_datebirth.append(date)
+        masked_datebirth.append(masked_date)
 
     masked_address = [
         re.sub(

@@ -68,10 +68,8 @@ def parse_data(data: str):
     address_pattern = re.compile(
     r'Address\s*:\s*(.*?)'
     r'(?=\s*Address\s*:'
-    r'|\s*payment\b'
     r'|\s*DOB\s*:'
     r'|\s*Phone\s*:'
-    r'|\s*alt contact\b'
     r'|\s*[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}'
     r'|(?<!\d)(?:\d[ -]?){15}\d(?!\d)'
     r'|$)',
@@ -135,8 +133,8 @@ def masking_data(data: str):
 
     for date in result["datebirth"]:
         masked_date = re.sub(
-            r'\d{1,2}[/-]\d{1,2}[/-]\d{2}(\d{2})',
-            r'XX/XX/XX\1',
+            r'\d{1,2}[/-]\d{1,2}[/-](\d{2})\d{2}',
+            r'XX/XX/\1XX',
             date
         )
         masked_datebirth.append(masked_date)

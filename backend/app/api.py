@@ -65,7 +65,9 @@ def parse_data(data: str):
     )
 
     result["address"] = re.findall(
-    r'Address\s*:\s*(.*?)(?=\s*Address\s*:|[\r\n]|$)',
+    r'Address\s*:\s*(.*?)'
+    r'(?=\s*(?:Address|payment|DOB|Date of Birth|Birthdate|Phone|'
+    r'alt contact|email)\s*:?\s*|$)',
     data,
     re.IGNORECASE
 )

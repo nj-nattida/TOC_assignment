@@ -110,7 +110,11 @@ Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว
                 Credit Card
               </span>
               <span className="result-value">
-                {savedData.cardNumber}
+                              {savedData.cardNumber?.map((cardNumber, index) => (
+                  <div key={index}>
+                    <span className="result-value">{cardNumber}</span>
+                  </div>
+                ))}
               </span>
             </div>
 
@@ -119,7 +123,11 @@ Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว
                 Email
               </span>
               <span className="result-value">
-                {savedData.email}
+                {savedData.email?.map((email, index) => (
+                  <div key={index}>
+                    <span className="result-value">{email}</span>
+                  </div>
+                ))}
               </span>
             </div>
 
@@ -141,7 +149,11 @@ Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว
                 Date of Birth
               </span>
               <span className="result-value">
-                {savedData.dob}
+                {savedData.dob?.map((dob, index) => (
+                  <div key={index}>
+                    <span className="result-value">{dob}</span>
+                  </div>
+                ))}
               </span>
             </div>
 
@@ -150,7 +162,11 @@ Address: 123 ซอยลาดพร้าว ถนนลาดพร้าว
                 Address
               </span>
               <span className="result-value">
-                {savedData.address}
+                                {savedData.address?.map((address, index) => (
+                  <div key={index}>
+                    <span className="result-value">{address}</span>
+                  </div>
+                ))}
               </span>
             </div>
           </div>

@@ -1,14 +1,6 @@
-import re 
+import re
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-class UserData(BaseModel):
-    cardNumber: str
-    email: str
-    phone: str
-    dob: str
-    address: str
 
 app = FastAPI()
 
@@ -24,108 +16,141 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
 @app.get("/")
 async def read_root():
     return {"message": "Hello, World!"}
 
+
 @app.post("/submit")
 async def submit_data(data: str = Body(...)):
-    #print("Received data:", data)
-    masked_data = masking_data(data)
-    return masked_data
+    return masking_data(data)
 
-def parse_data(data):
+
+def parse_data(data: str):
     result = {
-        "credit_num": "",
-        "email": "",
-        "phone_number": "",
-        "datebirth": "",
-        "address": ""
+        "credit_num": [],
+        "email": [],
+        "phone_number": [],
+        "datebirth": [],
+        "address": []
     }
 
-    emails = re.findall(
+    result["email"] = re.findall(
         r'[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}',
         data
     )
-    if emails:
-        result["email"] = emails[0]
 
-    credit = re.search(
+    result["credit_num"] = re.findall(
         r'(?<!\d)(?:\d[ -]?){15}\d(?!\d)',
         data
     )
-    if credit:
-        result["credit_num"] = credit.group().strip()
-        
+
     phones = re.findall(
         r'(?<!\d)(?:\+66|0)[ -]?\d(?:[ -]?\d){8,9}(?!\d)',
         data
     )
+
     result["phone_number"] = [
         re.sub(r'[ -]', '', phone)
         for phone in phones
     ]
 
-    dob = re.search(
-        r'(?:DOB|Date of Birth|Birthdate)\s*:\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
+    result["datebirth"] = re.findall(
+        r'(?:DOB|Date of Birth|Birthdate)\s*:\s*'
+        r'(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
         data,
         re.IGNORECASE
     )
-    if dob:
-        result["datebirth"] = dob.group(1)
 
-    address = re.search(
-        r'Address\s*:\s*(.+)',
-        data,
-        re.IGNORECASE
-    )
-    if address:
-        result["address"] = address.group(1).strip()
-
+    result["address"] = re.findall(
+    r'Address\s*:\s*(.*?)(?=\s*Address\s*:|$)',
+    data,
+    re.IGNORECASE
+    )   
+    result["address"] = [
+        address.strip()
+        for address in result["address"]
+    ]
     return result
+
+
+def mask_email(email: str):
+    username, domain = email.rsplit("@", 1)
+
+    if len(username) == 1:
+        masked = username
+    elif len(username) == 2:
+        masked = username[0] + "*" + username[-1]
+    else:
+        masked = (
+            username[0]
+            + "*" * (len(username) - 2)
+            + username[-1]
+        )
+
+    return f"{masked}@{domain}"
+
+
 def masking_data(data: str):
     result = parse_data(data)
-    credit_num = result["credit_num"]
-    email = result["email"]
-    phone_number = result["phone_number"]
-    datebirth = result["datebirth"]
-    address = result["address"]
-    datebirth = datebirth.removeprefix("DOB: ")
-    address = address.removeprefix("Address: ")
-    
-    datebirth_pattern = r'(\d{2})/(\d{2})/(\d{2})(\d{2})'
-    address_pattern_mask = r'^\d{1,5}'
-    credit_pattern_mask = r'\d{4}-\d{4}-\d{4}'
-    phone_pattern_mask = r'\d{3}-\d{3}'
 
-    
-    masked_credit_num = re.sub(credit_pattern_mask, 'XXXX-XXXX-XXXX', credit_num)
-    masked_email = re.sub(
-        r'^(.)(.*)(.@.*)$',
-        r'\1***\3',
-        email
-    )
-    masked_phone_number = [
-        re.sub(r'\d(?=(?:\D*\d){4})', 'X', phone)
-        for phone in phone_number
+    masked_credit_num = []
+
+    for card in result["credit_num"]:
+        digits = re.sub(r'\D', '', card)
+        masked_credit_num.append(
+            f"XXXX-XXXX-XXXX-{digits[-4:]}"
+            if len(digits) == 16 else card
+        )
+
+    # Mask all email addresses
+    masked_email = [
+        mask_email(email)
+        for email in result["email"]
     ]
 
-    masked_phone_number = [
-    f"{phone[:3]}-{phone[3:6]}-{phone[6:]}"
-    if len(phone) == 10 else phone
-    for phone in masked_phone_number
+    masked_phone_number = []
+
+    for phone in result["phone_number"]:
+        if len(phone) == 10:
+            masked_phone_number.append(
+                f"XXX-XXX-{phone[-4:]}"
+            )
+        else:
+            masked_phone_number.append(phone)
+
+    masked_datebirth = []
+
+    for date in result["datebirth"]:
+        match = re.fullmatch(
+            r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
+            date
+        )
+
+        if match:
+            separator = "/" if "/" in date else "-"
+            year = match.group(3)
+            masked_datebirth.append(
+                f"XX{separator}XX{separator}{year}"
+            )
+        else:
+            masked_datebirth.append(date)
+
+    masked_address = [
+        re.sub(
+            r'^\s*\d+(?:/\d+)?',
+            lambda m: re.sub(r'\d', 'X', m.group()),
+            address.strip()
+        )
+        for address in result["address"]
     ]
-    masked_datebirth = re.sub(datebirth_pattern, 'XX/XX/\\3XX', datebirth)
-    masked_address = re.sub(
-        r'^\d+(?:/\d+)?',
-        lambda m: re.sub(r'\d', 'X', m.group()),
-        address
-    )
 
     return {
-    "cardNumber": masked_credit_num,
-    "email": masked_email,
-    "phone": masked_phone_number,
-    "dob": masked_datebirth,
-    "address": masked_address
-}
+        "cardNumber": masked_credit_num,
+        "email": masked_email,
+        "phone": masked_phone_number,
+        "dob": masked_datebirth,
+        "address": masked_address
+    }
